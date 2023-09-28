@@ -1,1 +1,7 @@
-
+aiohttp
+asyncio
+BeautifulSoup4
+pyperclip
+concurrent.futures 
+AsyncLimiter
+cachetools

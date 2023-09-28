@@ -3,5 +3,4 @@ aiohttp
 asyncio
 BeautifulSoup4
 pyperclip
-AsyncLimiter==0.4
 cachetools

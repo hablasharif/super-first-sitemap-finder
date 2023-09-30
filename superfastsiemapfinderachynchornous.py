@@ -9,9 +9,16 @@ import datetime
 import concurrent.futures
 from aiolimiter import AsyncLimiter
 import cachetools
+import ssl  # Import the ssl module
 
 # Define a user agent to simulate a web browser
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+
+# Disable SSL verification for a specific domain
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
+ssl_context.hosts = ['0gomovies.si']  # Add your domain here
 
 async def extract_sitemap_url(session, domain):
     sitemap_urls = [
@@ -22,7 +29,7 @@ async def extract_sitemap_url(session, domain):
 
     for sitemap_url in sitemap_urls:
         try:
-            async with session.get(sitemap_url, headers={"User-Agent": user_agent}) as response:
+            async with session.get(sitemap_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
                 if response.status == 200:
                     return sitemap_url
         except aiohttp.ClientError as e:
@@ -35,7 +42,7 @@ async def extract_all_urls_from_sitemap(session, sitemap_url):
 
     async def extract_recursive(sitemap_url):
         try:
-            async with session.get(sitemap_url, headers={"User-Agent": user_agent}) as response:
+            async with session.get(sitemap_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
                 if response.status == 200:
                     soup = BeautifulSoup(await response.text(), "xml")
                     url_elements = soup.find_all("loc")
@@ -131,7 +138,7 @@ async def process_domain(session, domain, all_url_list, limiter):
         for sitemap_url in sitemap_urls:
             try:
                 st.text(f"Trying sitemap URL: {sitemap_url}")
-                async with session.get(sitemap_url, headers={"User-Agent": user_agent}) as response:
+                async with session.get(sitemap_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
                     if response.status == 200:
                         url_list = await extract_all_urls_from_sitemap(session, sitemap_url)
                         total_urls = len(url_list)

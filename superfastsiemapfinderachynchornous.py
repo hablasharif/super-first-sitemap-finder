@@ -57,16 +57,54 @@ def filter_urls(url_list):
     filtered_urls = []
     removed_urls = []
 
-    filter_patterns = [
+filter_patterns = [
         "/casts/",
         "/cast/",
         "/directors/",
         "/director/",
         "/artist/",
         "/artists/",
-        # ... (other patterns)
+        "/actors/",
+        "/actor/",
+        "/tag/",
+        "/tags/",
+        "/country/",
+        "/genre/",
+        "/stars/",
+        "/release-year/",
+        "/quality/",
+        "/episode-date/",
+        "/category/",
+        "/lang/",
+        "/year/",
+        "/index/",
+        "/network/",
+        "/blog-tag/",
+        "/blog-category/",
+        "/archive/",
+        "/sitemap-",
+        "/author/",
+        "/writer/",
+        "/director_tv/",
+        "/cast_tv/",
+        "/movies-by-year/",
+        "/uncategorized/",
+        "/movies-by-genre/",
+        "/tv-shows-by-network/",
+        "/tv-shows-by-genre/",
+        "/movies-by-file-size/",
+        "/movies-by-quality/",
+        "/comedy-show/",
+        "/site-disclaimer/",
+        "/about-us/",
+        "/dmca/",
+        "/report-broken-links/",
+        "/contact-us/",
+        ".xml",
+        ".jpg",
+        ".png",
+        ".webp"
     ]
-
     filter_extensions = [".jpg", ".png", ".webp", ".xml"]
 
     for url in url_list:

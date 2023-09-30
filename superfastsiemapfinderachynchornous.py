@@ -30,6 +30,7 @@ async def extract_sitemap_url(session, domain):
 
     return None
 
+
 async def extract_all_urls_from_sitemap(session, sitemap_url):
     url_list = []
 

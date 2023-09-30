@@ -27,9 +27,10 @@ async def extract_sitemap_url(session, domain):
                     st.write(f"Using sitemap URL: {sitemap_url}")  # Print the sitemap URL being used
                     return sitemap_url
         except aiohttp.ClientError as e:
-            continue  # If the first URL fails, continue to the next one
+            pass
 
     return None
+
 
 async def extract_all_urls_from_sitemap(session, sitemap_url):
     url_list = []

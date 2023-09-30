@@ -14,23 +14,21 @@ import cachetools  # Added for caching
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 
 async def extract_sitemap_url(session, domain):
-    sitemap_urls = [
+    sitemap_url_candidates = [
         urljoin(domain, "sitemap.xml"),
         urljoin(domain, "sitemap_index.xml"),
         urljoin(domain, "sitemap_gn.xml")
     ]
 
-    for sitemap_url in sitemap_urls:
+    for sitemap_url in sitemap_url_candidates:
         try:
             async with session.get(sitemap_url, headers={"User-Agent": user_agent}) as response:
                 if response.status == 200:
-                    st.write(f"Using sitemap URL: {sitemap_url}")  # Print the sitemap URL being used
                     return sitemap_url
         except aiohttp.ClientError as e:
             pass
 
     return None
-
 
 async def extract_all_urls_from_sitemap(session, sitemap_url):
     url_list = []

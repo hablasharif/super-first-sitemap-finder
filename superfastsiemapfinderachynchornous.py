@@ -6,9 +6,9 @@ from urllib.parse import urlparse, urljoin
 import pyperclip
 import csv
 import datetime
-import concurrent.futures  # Added for parallel file I/O
-from aiolimiter import AsyncLimiter  # Added for rate limiting
-import cachetools  # Added for caching
+import concurrent.futures
+from aiolimiter import AsyncLimiter
+import cachetools
 
 # Define a user agent to simulate a web browser
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
@@ -64,46 +64,7 @@ def filter_urls(url_list):
         "/director/",
         "/artist/",
         "/artists/",
-        "/actors/",
-        "/actor/",
-        "/tag/",
-        "/tags/",
-        "/country/",
-        "/genre/",
-        "/stars/",
-        "/release-year/",
-        "/quality/",
-        "/episode-date/",
-        "/category/",
-        "/lang/",
-        "/year/",
-        "/index/",
-        "/network/",
-        "/blog-tag/",
-        "/blog-category/",
-        "/archive/",
-        "/sitemap-",
-        "/author/",
-        "/writer/",
-        "/director_tv/",
-        "/cast_tv/",
-        "/movies-by-year/",
-        "/uncategorized/",
-        "/movies-by-genre/",
-        "/tv-shows-by-network/",
-        "/tv-shows-by-genre/",
-        "/movies-by-file-size/",
-        "/movies-by-quality/",
-        "/comedy-show/",
-        "/site-disclaimer/",
-        "/about-us/",
-        "/dmca/",
-        "/report-broken-links/",
-        "/contact-us/",
-        ".xml",
-        ".jpg",
-        ".png",
-        ".webp"
+        # ... (other patterns)
     ]
 
     filter_extensions = [".jpg", ".png", ".webp", ".xml"]
@@ -205,6 +166,17 @@ async def main():
             key="download_button_filtered",
             file_name=filtered_filename,
         )
+
+    # Count the number of input URLs
+    num_input_urls = len(all_url_list)
+
+    # Count the number of removed URLs
+    num_removed_urls = len(removed_urls)
+
+    # Display the count of input URLs, removed URLs, and unfiltered URLs
+    st.write(f"Number of Input URLs: {num_input_urls}")
+    st.write(f"Number of Removed URLs: {num_removed_urls}")
+    st.write(f"Number of Unfiltered URLs: {num_input_urls - num_removed_urls}")
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -27,7 +27,7 @@ async def extract_sitemap_url(session, domain):
                     st.write(f"Using sitemap URL: {sitemap_url}")  # Print the sitemap URL being used
                     return sitemap_url
         except aiohttp.ClientError as e:
-            pass
+            continue  # If the first URL fails, continue to the next one
 
     return None
 
@@ -60,7 +60,7 @@ def filter_urls(url_list):
     removed_urls = []
 
     filter_patterns = [
-                      "/casts/",
+        "/casts/",
         "/cast/",
         "/directors/",
         "/director/",

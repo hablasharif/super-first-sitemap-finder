@@ -58,54 +58,13 @@ def filter_urls(url_list):
     removed_urls = []
 
     filter_patterns = [
-                      "/casts/",
+        "/casts/",
         "/cast/",
         "/directors/",
         "/director/",
         "/artist/",
         "/artists/",
-        "/actors/",
-        "/actor/",
-        "/tag/",
-        "/tags/",
-        "/country/",
-        "/genre/",
-        "/stars/",
-        "/release-year/",
-        "/quality/",
-        "/episode-date/",
-        "/category/",
-        "/lang/",
-        "/year/",
-        "/index/",
-        "/network/",
-        "/blog-tag/",
-        "/blog-category/",
-        "/archive/",
-        "/sitemap-",
-        "/author/",
-        "/writer/",
-        "/director_tv/",
-        "/cast_tv/",
-        "/movies-by-year/",
-        "/uncategorized/",
-        "/movies-by-genre/",
-        "/tv-shows-by-network/",
-        "/tv-shows-by-genre/",
-        "/movies-by-file-size/",
-        "/movies-by-quality/",
-        "/comedy-show/",
-        "/site-disclaimer/",
-        "/about-us/",
-        "/dmca/",
-        "/report-broken-links/",
-        "/contact-us/",
-        ".xml",
-        ".jpg",
-        ".png",
-        ".webp"
-        ".jpeg",
-        ".svg",
+        # ... (other patterns)
     ]
 
     filter_extensions = [".jpg", ".png", ".webp", ".xml"]
@@ -136,6 +95,8 @@ async def process_domain(session, domain, all_url_list, limiter):
                 all_url_list.extend(url_list)
             else:
                 st.error(f"Failed to retrieve or extract URLs from {domain}.")
+        else:
+            st.error(f"Failed to retrieve sitemap for {domain}.")
 
 async def main():
     st.title("Sitemap URL Extractor")

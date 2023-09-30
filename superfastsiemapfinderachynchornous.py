@@ -168,43 +168,44 @@ async def main():
 
                 await asyncio.gather(*tasks)
 
-    if st.button("Copy All URLs"):
-        if all_url_list:
-            all_urls_text = "\n".join(all_url_list)
-            pyperclip.copy(all_urls_text)
-            st.success("All URLs copied to clipboard.")
+   if st.button("Copy All URLs"):
+    if all_url_list:
+        all_urls_text = "\n".join(all_url_list)
+        pyperclip.copy(all_urls_text)
+        st.success("All URLs copied to clipboard.")
 
-    if domains:
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %A %I-%M-%p")
-        formatted_domains = " ".join(domain.replace("https://", "").replace("http://", "") for domain in domains)
-        unfiltered_filename = f"Unfiltered URLs {formatted_domains} {timestamp}.csv"
+if domains:
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %A %I-%M-%p")
+    formatted_domains = " ".join(domain.replace("https://", "").replace("http://", "") for domain in domains)
+    unfiltered_filename = f"Unfiltered URLs {formatted_domains} {timestamp}.csv"
 
-        download_button_unfiltered = st.download_button(
-            label="Download Unfiltered URLs as CSV",
-            data="\n".join(all_url_list),
-            key="download_button_unfiltered",
-            file_name=unfiltered_filename,
-        )
+    download_button_unfiltered = st.download_button(
+        label="Download Unfiltered URLs as CSV",
+        data="\n".join(all_url_list),
+        key="download_button_unfiltered",
+        file_name=unfiltered_filename,
+    )
 
-        filtered_urls, removed_urls = filter_urls(all_url_list)
+    filtered_urls, removed_urls = filter_urls(all_url_list)
 
-        removed_filename = f"Removed URLs {formatted_domains} {timestamp}.csv"
+    removed_filename = f"Removed URLs {formatted_domains} {timestamp}.csv"
+    
+    # Add the total number of removed URLs to the button label
+    download_button_removed = st.download_button(
+        label=f"Download Removed URLs as CSV ({len(removed_urls)} URLs)",
+        data="\n".join(removed_urls),
+        key="download_button_removed",
+        file_name=removed_filename,
+    )
 
-        download_button_removed = st.download_button(
-            label="Download Removed URLs as CSV",
-            data="\n".join(removed_urls),
-            key="download_button_removed",
-            file_name=removed_filename,
-        )
+    filtered_filename = f"Filtered URLs {formatted_domains} {len(filtered_urls)} {timestamp}.csv"
 
-        filtered_filename = f"Filtered URLs {formatted_domains} {len(filtered_urls)} {timestamp}.csv"
-
-        download_button_filtered = st.download_button(
-            label=f"Download Filtered URLs as CSV ({len(filtered_urls)} URLs)",
-            data="\n".join(filtered_urls),
-            key="download_button_filtered",
-            file_name=filtered_filename,
-        )
+    download_button_filtered = st.download_button(
+        label=f"Download Filtered URLs as CSV ({len(filtered_urls)} URLs)",
+        data="\n".join(filtered_urls),
+        key="download_button_filtered",
+        file_name=filtered_filename,
+    )
 
 if __name__ == "__main__":
     asyncio.run(main())

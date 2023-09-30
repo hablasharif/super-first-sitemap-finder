@@ -57,8 +57,8 @@ def filter_urls(url_list):
     filtered_urls = []
     removed_urls = []
 
-filter_patterns = [
-        "/casts/",
+    filter_patterns = [
+                 "/casts/",
         "/cast/",
         "/directors/",
         "/director/",
@@ -105,6 +105,7 @@ filter_patterns = [
         ".png",
         ".webp"
     ]
+
     filter_extensions = [".jpg", ".png", ".webp", ".xml"]
 
     for url in url_list:

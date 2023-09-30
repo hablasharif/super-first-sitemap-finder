@@ -114,7 +114,6 @@ async def main():
     domains = [domain.strip() for domain in domain_input.split("\n") if domain.strip()]
 
     all_url_list = []
-    removed_urls = []  # Define removed_urls here
 
     if st.button("Extract URLs"):
         if domains:
@@ -167,20 +166,6 @@ async def main():
             key="download_button_filtered",
             file_name=filtered_filename,
         )
-
-    # Display the total number of input URLs
-    if domain_input:
-        input_url_count = len(all_url_list)
-        st.text(f"Total Input URLs: {input_url_count}")
-
-    # Display the total number of URLs for "Download Removed URLs as CSV" and "Download Unfiltered URLs as CSV"
-    if removed_urls:
-        removed_url_count = len(removed_urls)
-        st.text(f"Total URLs for Download Removed URLs as CSV: {removed_url_count}")
-
-    if all_url_list:
-        unfiltered_url_count = len(all_url_list)
-        st.text(f"Total URLs for Download Unfiltered URLs as CSV: {unfiltered_url_count}")
 
 if __name__ == "__main__":
     asyncio.run(main())

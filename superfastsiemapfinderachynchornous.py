@@ -27,7 +27,7 @@ async def extract_sitemap_url(session, domain):
                     st.write(f"Using sitemap URL: {sitemap_url}")  # Print the sitemap URL being used
                     return sitemap_url
         except aiohttp.ClientError as e:
-            pass
+            st.write(f"Failed to retrieve sitemap from {sitemap_url}")
 
     return None
 
@@ -53,7 +53,6 @@ async def extract_all_urls_from_sitemap(session, sitemap_url):
 
     await extract_recursive(sitemap_url)
     return url_list
-
 
 
 def filter_urls(url_list):

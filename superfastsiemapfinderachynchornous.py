@@ -26,6 +26,9 @@ async def extract_sitemap_url(session, domain):
                 if response.status == 200:
                     st.write(f"Using sitemap URL: {sitemap_url}")  # Print the sitemap URL being used
                     return sitemap_url
+                elif response.status == 406:
+                    st.write(f"Received 406 Client Error from {sitemap_url}")
+                # Handle other status codes as needed
         except aiohttp.ClientError as e:
             st.write(f"Failed to retrieve sitemap from {sitemap_url}")
 

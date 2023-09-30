@@ -58,7 +58,7 @@ def filter_urls(url_list):
     removed_urls = []
 
     filter_patterns = [
-                 "/casts/",
+        "/casts/",
         "/cast/",
         "/directors/",
         "/director/",

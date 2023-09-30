@@ -54,6 +54,8 @@ async def extract_all_urls_from_sitemap(session, sitemap_url):
     await extract_recursive(sitemap_url)
     return url_list
 
+
+
 def filter_urls(url_list):
     filtered_urls = []
     removed_urls = []

@@ -114,6 +114,7 @@ async def main():
     domains = [domain.strip() for domain in domain_input.split("\n") if domain.strip()]
 
     all_url_list = []
+    removed_urls = []  # Define removed_urls here
 
     if st.button("Extract URLs"):
         if domains:

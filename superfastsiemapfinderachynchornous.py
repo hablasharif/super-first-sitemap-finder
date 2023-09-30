@@ -15,7 +15,7 @@ user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 async def extract_sitemap_url(session, domain):
     sitemap_urls = [
-       urljoin(domain, "sitemap.xml"),
+        urljoin(domain, "sitemap.xml"),
         urljoin(domain, "sitemap_index.xml"),
         urljoin(domain, "sitemap_gn.xml")
     ]
@@ -24,12 +24,13 @@ async def extract_sitemap_url(session, domain):
         try:
             async with session.get(sitemap_url, headers={"User-Agent": user_agent}) as response:
                 if response.status == 200:
+                    print(f"Using sitemap URL: {sitemap_url}")
                     return sitemap_url
         except aiohttp.ClientError as e:
-            continue  # Continue to the next sitemap URL if there's an exception
+            pass
 
+    print("No valid sitemap URL found.")
     return None
-
 
 
 async def extract_all_urls_from_sitemap(session, sitemap_url):

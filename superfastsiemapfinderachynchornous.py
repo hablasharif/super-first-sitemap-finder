@@ -104,6 +104,8 @@ def filter_urls(url_list):
         ".jpg",
         ".png",
         ".webp"
+        ".jpeg",
+        ".svg",
     ]
 
     filter_extensions = [".jpg", ".png", ".webp", ".xml"]

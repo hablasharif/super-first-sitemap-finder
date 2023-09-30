@@ -24,6 +24,7 @@ async def extract_sitemap_url(session, domain):
         try:
             async with session.get(sitemap_url, headers={"User-Agent": user_agent}) as response:
                 if response.status == 200:
+                    st.write(f"Using sitemap URL: {sitemap_url}")  # Print the sitemap URL being used
                     return sitemap_url
         except aiohttp.ClientError as e:
             pass
@@ -52,7 +53,6 @@ async def extract_all_urls_from_sitemap(session, sitemap_url):
 
     await extract_recursive(sitemap_url)
     return url_list
-
 
 def filter_urls(url_list):
     filtered_urls = []

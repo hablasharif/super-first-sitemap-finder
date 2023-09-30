@@ -26,9 +26,10 @@ async def extract_sitemap_url(session, domain):
                 if response.status == 200:
                     return sitemap_url
         except aiohttp.ClientError as e:
-            pass
+            continue  # Continue to the next sitemap URL if there's an exception
 
     return None
+
 
 
 async def extract_all_urls_from_sitemap(session, sitemap_url):

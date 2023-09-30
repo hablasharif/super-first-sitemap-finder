@@ -6,9 +6,9 @@ from urllib.parse import urlparse, urljoin
 import pyperclip
 import csv
 import datetime
-import concurrent.futures  # Added for parallel file I/O
-from aiolimiter import AsyncLimiter  # Added for rate limiting
-import cachetools  # Added for caching
+import concurrent.futures
+from aiolimiter import AsyncLimiter
+import cachetools
 
 # Define a user agent to simulate a web browser
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"

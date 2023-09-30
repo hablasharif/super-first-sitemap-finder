@@ -14,23 +14,19 @@ import cachetools  # Added for caching
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 
 async def extract_sitemap_url(session, domain):
-    sitemap_url_candidates = [
+    sitemap_urls = [
         urljoin(domain, "sitemap.xml"),
         urljoin(domain, "sitemap_index.xml"),
         urljoin(domain, "sitemap_gn.xml")
     ]
 
-    for sitemap_url in sitemap_url_candidates:
+    for sitemap_url in sitemap_urls:
         try:
             async with session.get(sitemap_url, headers={"User-Agent": user_agent}) as response:
                 if response.status == 200:
-                    st.write(f"Using sitemap URL: {sitemap_url}")  # Print the sitemap URL being used
                     return sitemap_url
-                elif response.status == 406:
-                    st.write(f"Received 406 Client Error from {sitemap_url}")
-                # Handle other status codes as needed
         except aiohttp.ClientError as e:
-            st.write(f"Failed to retrieve sitemap from {sitemap_url}")
+            pass
 
     return None
 
@@ -57,13 +53,12 @@ async def extract_all_urls_from_sitemap(session, sitemap_url):
     await extract_recursive(sitemap_url)
     return url_list
 
-
 def filter_urls(url_list):
     filtered_urls = []
     removed_urls = []
 
     filter_patterns = [
-        "/casts/",
+                      "/casts/",
         "/cast/",
         "/directors/",
         "/director/",

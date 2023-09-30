@@ -15,8 +15,8 @@ user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 async def extract_sitemap_url(session, domain):
     sitemap_urls = [
-        urljoin(domain, "sitemap.xml"),
         urljoin(domain, "sitemap_index.xml"),
+        urljoin(domain, "sitemap.xml"),
         urljoin(domain, "sitemap_gn.xml")
     ]
 
@@ -166,6 +166,20 @@ async def main():
             key="download_button_filtered",
             file_name=filtered_filename,
         )
+
+    # Display the total number of input URLs
+    if domain_input:
+        input_url_count = len(all_url_list)
+        st.text(f"Total Input URLs: {input_url_count}")
+
+    # Display the total number of URLs for "Download Removed URLs as CSV" and "Download Unfiltered URLs as CSV"
+    if removed_urls:
+        removed_url_count = len(removed_urls)
+        st.text(f"Total URLs for Download Removed URLs as CSV: {removed_url_count}")
+
+    if all_url_list:
+        unfiltered_url_count = len(all_url_list)
+        st.text(f"Total URLs for Download Unfiltered URLs as CSV: {unfiltered_url_count}")
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -22,7 +22,6 @@ ssl_context.hosts = ['0gomovies.si']  # Add your domain here
 
 async def extract_sitemap_url(session, domain):
     sitemap_urls = [
-        urljoin(domain, "sitemap_index.xml"),
 
     ]
 

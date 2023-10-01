@@ -24,6 +24,7 @@ async def extract_sitemap_url(session, domain):
     sitemap_urls = [
         urljoin(domain, "sitemap_index.xml"),
         urljoin(domain, "sitemap.xml"),
+        urljoin(domain, "sitemap.index.xml"),
         urljoin(domain, "sitemap_gn.xml")
     ]
 

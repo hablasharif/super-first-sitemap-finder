@@ -126,30 +126,35 @@ def filter_urls(url_list):
     return filtered_urls, removed_urls
 
 async def process_domain(session, domain, all_url_list, limiter):
-    async with limiter:
-        sitemap_urls = [
-            urljoin(domain, "sitemap_index.xml"),
-            urljoin(domain, "sitemap.xml"),
-            urljoin(domain, "sitemap_gn.xml")
-        ]
-        
-        for sitemap_url in sitemap_urls:
-            try:
-                st.text(f"Trying sitemap URL: {sitemap_url}")
-                async with session.get(sitemap_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
-                    if response.status == 200:
-                        url_list = await extract_all_urls_from_sitemap(session, sitemap_url)
-                        total_urls = len(url_list)
+    try:
+        async with limiter:
+            sitemap_urls = [
+                urljoin(domain, "sitemap_index.xml"),
+                urljoin(domain, "sitemap.xml"),
+                urljoin(domain, "sitemap_gn.xml")
+            ]
 
-                        if url_list:
-                            st.success(f"Found {total_urls} URLs in the sitemap of {domain}:")
-                            st.text_area(f"URLs from {domain}", "\n".join(url_list))
-                            all_url_list.extend(url_list)
-                            return  # Exit the loop if successful
-            except aiohttp.ClientError as e:
-                pass
+            for sitemap_url in sitemap_urls:
+                try:
+                    st.text(f"Trying sitemap URL: {sitemap_url}")
+                    async with session.get(sitemap_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
+                        if response.status == 200:
+                            url_list = await extract_all_urls_from_sitemap(session, sitemap_url)
+                            total_urls = len(url_list)
 
-        st.error(f"Failed to retrieve or extract URLs from {domain}.")
+                            if url_list:
+                                st.success(f"Found {total_urls} URLs in the sitemap of {domain}:")
+                                st.text_area(f"URLs from {domain}", "\n".join(url_list))
+                                all_url_list.extend(url_list)
+                                return  # Exit the loop if successful
+                except aiohttp.ClientError as e:
+                    pass
+
+            st.error(f"Failed to retrieve or extract URLs from {domain}.")
+    except asyncio.TimeoutError:
+        st.error(f"Timeout while processing {domain}.")
+    except Exception as e:
+        st.error(f"Error processing {domain}: {str(e)}")
 
 async def main():
     st.title("Sitemap URL Extractor")
@@ -163,7 +168,7 @@ async def main():
         if domains:
             connector = aiohttp.TCPConnector(limit_per_host=10)  # Connection pooling
             async with aiohttp.ClientSession(connector=connector) as session:
-                rate_limiter = AsyncLimiter(10)  # Rate limiting (adjust the limit)
+                rate_limiter = AsyncLimiter(20)  # Increase the limit to 20 requests per second
                 tasks = []
                 for domain in domains:
                     if not domain.startswith("http://") and not domain.startswith("https://"):

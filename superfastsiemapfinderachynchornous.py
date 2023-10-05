@@ -108,7 +108,8 @@ def filter_urls(url_list):
         ".xml",
         ".jpg",
         ".png",
-        ".webp"
+        ".webp",
+        ".jpeg",
     ]
 
     filter_extensions = [".jpg", ".png", ".webp", ".xml"]
@@ -166,9 +167,9 @@ async def main():
 
     if st.button("Extract URLs"):
         if domains:
-            connector = aiohttp.TCPConnector(limit_per_host=10)  # Connection pooling
+            connector = aiohttp.TCPConnector(limit_per_host=100)  # Connection pooling
             async with aiohttp.ClientSession(connector=connector) as session:
-                rate_limiter = AsyncLimiter(20)  # Increase the limit to 20 requests per second
+                rate_limiter = AsyncLimiter(200)  # Increase the limit to 20 requests per second
                 tasks = []
                 for domain in domains:
                     if not domain.startswith("http://") and not domain.startswith("https://"):

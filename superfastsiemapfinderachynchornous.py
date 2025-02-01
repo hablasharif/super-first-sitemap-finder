@@ -20,47 +20,6 @@ ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 ssl_context.hosts = ['0gomovies.si']  # Add your domain here
 
-async def extract_sitemap_urls(session, domain):
-    # Try predefined sitemap URLs first
-    predefined_sitemap_urls = [
-        urljoin(domain, "sitemap_index.xml"),
-        urljoin(domain, "sitemap.xml"),
-        urljoin(domain, "sitemap_gn.xml"),
-        urljoin(domain, "news.xml")
-    ]
-
-    sitemap_urls = []
-
-    # Check predefined sitemap URLs
-    for sitemap_url in predefined_sitemap_urls:
-        try:
-            async with session.get(sitemap_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
-                if response.status == 200:
-                    sitemap_urls.append(sitemap_url)
-        except aiohttp.ClientError as e:
-            pass
-
-    # If no sitemap found in predefined URLs, check robots.txt for .xml URLs
-    if not sitemap_urls:
-        robots_url = urljoin(domain, "robots.txt")
-        try:
-            async with session.get(robots_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
-                if response.status == 200:
-                    robots_content = await response.text()
-                    for line in robots_content.splitlines():
-                        # Look for lines starting with "Sitemap:" and ending with .xml
-                        if line.strip().lower().startswith("sitemap:") and line.strip().lower().endswith(".xml"):
-                            sitemap_url = line.split(":", 1)[1].strip()
-                            # If the sitemap URL is absolute, use it directly
-                            if sitemap_url.startswith("http"):
-                                sitemap_urls.append(sitemap_url)
-                            else:
-                                sitemap_urls.append(urljoin(domain, sitemap_url))
-        except aiohttp.ClientError as e:
-            pass
-
-    return sitemap_urls
-
 async def extract_all_urls_from_sitemap(session, sitemap_url):
     url_set = set()  # Use a set to store unique URLs
 
@@ -152,35 +111,14 @@ def filter_urls(url_list):
 
     return filtered_urls, removed_urls
 
-async def process_domain(session, domain, all_url_set, limiter):
-    try:
-        async with limiter:
-            sitemap_urls = await extract_sitemap_urls(session, domain)
-            if sitemap_urls:
-                st.text(f"Found sitemap URLs: {', '.join(sitemap_urls)}")
-                for sitemap_url in sitemap_urls:
-                    url_list = await extract_all_urls_from_sitemap(session, sitemap_url)
-                    total_urls = len(url_list)
-
-                    if url_list:
-                        st.success(f"Found {total_urls} URLs in the sitemap: {sitemap_url}")
-                        st.text_area(f"URLs from {sitemap_url}", "\n".join(url_list))
-                        all_url_set.update(url_list)  # Add URLs to the global set
-            else:
-                st.error(f"Failed to retrieve or extract sitemap URLs from {domain}.")
-    except asyncio.TimeoutError:
-        st.error(f"Timeout while processing {domain}.")
-    except Exception as e:
-        st.error(f"Error processing {domain}: {str(e)}")
-
 async def main():
     st.title("Sitemap URL Extractor")
 
+    # Main domain input and extraction
     domain_input = st.text_area("Enter multiple domains (one per line):")
     domains = [domain.strip() for domain in domain_input.split("\n") if domain.strip()]
 
     all_url_set = set()  # Use a set to store all unique URLs
-    detected_sitemaps = []  # List to store detected sitemap URLs
 
     if st.button("Extract URLs"):
         if domains:
@@ -235,10 +173,36 @@ async def main():
             file_name=filtered_filename,
         )
 
-    # Display detected sitemap URLs
-    if detected_sitemaps:
-        st.subheader("Detected Sitemap URLs")
-        st.text_area("Sitemap URLs", "\n".join(detected_sitemaps))
+    # New section for user-defined sitemap extraction
+    st.subheader("Extract URLs from a Specific Sitemap")
+    user_sitemap_url = st.text_input("Enter a specific sitemap URL (e.g., https://image.bz-berlin.de/sitemap/news-sitemap.xml):")
+    user_url_set = set()  # Use a set to store URLs from the user-defined sitemap
+
+    if st.button("Extract URLs from Specific Sitemap"):
+        if user_sitemap_url:
+            connector = aiohttp.TCPConnector(limit_per_host=100)  # Connection pooling
+            async with aiohttp.ClientSession(connector=connector) as session:
+                rate_limiter = AsyncLimiter(200)  # Increase the limit to 20 requests per second
+                url_list = await extract_all_urls_from_sitemap(session, user_sitemap_url)
+                total_urls = len(url_list)
+
+                if url_list:
+                    st.success(f"Found {total_urls} URLs in the sitemap: {user_sitemap_url}")
+                    st.text_area(f"URLs from {user_sitemap_url}", "\n".join(url_list))
+                    user_url_set.update(url_list)  # Add URLs to the set
+                else:
+                    st.error(f"Failed to retrieve or extract URLs from {user_sitemap_url}.")
+
+    if user_url_set:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %A %I-%M-%p")
+        user_sitemap_filename = f"User Sitemap URLs {timestamp}.csv"
+
+        download_button_user_sitemap = st.download_button(
+            label="Download URLs from Specific Sitemap as CSV",
+            data="\n".join(user_url_set),
+            key="download_button_user_sitemap",
+            file_name=user_sitemap_filename,
+        )
 
 if __name__ == "__main__":
     asyncio.run(main())

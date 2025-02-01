@@ -26,7 +26,6 @@ async def extract_sitemap_url(session, domain):
         urljoin(domain, "sitemap.xml"),
         urljoin(domain, "sitemap_gn.xml"),
         urljoin(domain, "news.xml")
-        
     ]
 
     for sitemap_url in sitemap_urls:
@@ -36,6 +35,19 @@ async def extract_sitemap_url(session, domain):
                     return sitemap_url
         except aiohttp.ClientError as e:
             pass
+
+    # If no sitemap found in predefined URLs, check robots.txt
+    robots_url = urljoin(domain, "robots.txt")
+    try:
+        async with session.get(robots_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
+            if response.status == 200:
+                robots_content = await response.text()
+                for line in robots_content.splitlines():
+                    if line.lower().startswith("sitemap:"):
+                        sitemap_url = line.split(":", 1)[1].strip()
+                        return sitemap_url
+    except aiohttp.ClientError as e:
+        pass
 
     return None
 
@@ -133,34 +145,18 @@ def filter_urls(url_list):
 async def process_domain(session, domain, all_url_list, limiter):
     try:
         async with limiter:
-            sitemap_urls = [
-                urljoin(domain, "sitemap_index.xml"),
-                urljoin(domain, "sitemap.xml"),
-                urljoin(domain, "sitemap_gn.xml"),
-                urljoin(domain, "news.xml")
-            ]
+            sitemap_url = await extract_sitemap_url(session, domain)
+            if sitemap_url:
+                st.text(f"Found sitemap URL: {sitemap_url}")
+                url_list = await extract_all_urls_from_sitemap(session, sitemap_url)
+                total_urls = len(url_list)
 
-            # Add logic to handle sub-sitemap XML files
-            if "sitemaps" in domain:
-                sitemap_urls.append(domain)  # Directly use the provided sub-sitemap URL
-
-            for sitemap_url in sitemap_urls:
-                try:
-                    st.text(f"Trying sitemap URL: {sitemap_url}")
-                    async with session.get(sitemap_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
-                        if response.status == 200:
-                            url_list = await extract_all_urls_from_sitemap(session, sitemap_url)
-                            total_urls = len(url_list)
-
-                            if url_list:
-                                st.success(f"Found {total_urls} URLs in the sitemap of {domain}:")
-                                st.text_area(f"URLs from {domain}", "\n".join(url_list))
-                                all_url_list.extend(url_list)
-                                return  # Exit the loop if successful
-                except aiohttp.ClientError as e:
-                    pass
-
-            st.error(f"Failed to retrieve or extract URLs from {domain}.")
+                if url_list:
+                    st.success(f"Found {total_urls} URLs in the sitemap of {domain}:")
+                    st.text_area(f"URLs from {domain}", "\n".join(url_list))
+                    all_url_list.extend(url_list)
+            else:
+                st.error(f"Failed to retrieve or extract URLs from {domain}.")
     except asyncio.TimeoutError:
         st.error(f"Timeout while processing {domain}.")
     except Exception as e:
@@ -229,7 +225,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
 # Create a link to the external URL
 url = "https://website-titles-and-h1-tag-checke.streamlit.app/"
 link_text = "VISIT THIS IF YOU WANT TO PULL WEBSITE ALL TITLES AND H1 TAG TITLE THEN VISIT THIS"

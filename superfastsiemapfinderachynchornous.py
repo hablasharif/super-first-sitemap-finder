@@ -22,7 +22,9 @@ ssl_context.hosts = ['0gomovies.si']  # Add your domain here
 
 async def extract_sitemap_url(session, domain):
     sitemap_urls = [
-
+        urljoin(domain, "sitemap_index.xml"),
+        urljoin(domain, "sitemap.xml"),
+        urljoin(domain, "sitemap_gn.xml")
     ]
 
     for sitemap_url in sitemap_urls:
@@ -134,6 +136,10 @@ async def process_domain(session, domain, all_url_list, limiter):
                 urljoin(domain, "sitemap.xml"),
                 urljoin(domain, "sitemap_gn.xml")
             ]
+
+            # Add logic to handle sub-sitemap XML files
+            if "sitemaps" in domain:
+                sitemap_urls.append(domain)  # Directly use the provided sub-sitemap URL
 
             for sitemap_url in sitemap_urls:
                 try:

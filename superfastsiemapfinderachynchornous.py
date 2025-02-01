@@ -181,15 +181,22 @@ async def extract_robots_txt_urls(session, domain):
     try:
         async with session.get(robots_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
             if response.status == 200:
-                robots_content = await response.text()
-                for line in robots_content.splitlines():
-                    # Look for lines starting with "Sitemap:", "Allow:", or "Disallow:"
-                    if line.strip().lower().startswith(("sitemap:", "allow:", "disallow:")):
-                        url = line.split(":", 1)[1].strip()
-                        if url.startswith("http"):
-                            urls.append(url)
-                        else:
-                            urls.append(urljoin(domain, url))
+                try:
+                    robots_content = await response.text()
+                    for line in robots_content.splitlines():
+                        # Look for lines starting with "Sitemap:", "Allow:", or "Disallow:"
+                        if line.strip().lower().startswith(("sitemap:", "allow:", "disallow:")):
+                            url = line.split(":", 1)[1].strip()
+                            if url.startswith("http"):
+                                urls.append(url)
+                            else:
+                                urls.append(urljoin(domain, url))
+                except UnicodeDecodeError:
+                    st.error(f"Failed to decode robots.txt content from {robots_url}. It may contain binary data.")
+                except Exception as e:
+                    st.error(f"Error processing robots.txt content from {robots_url}: {str(e)}")
+            else:
+                st.error(f"Failed to fetch robots.txt from {robots_url}. Status code: {response.status}")
     except aiohttp.ClientError as e:
         st.error(f"Error fetching robots.txt from {domain}: {str(e)}")
 

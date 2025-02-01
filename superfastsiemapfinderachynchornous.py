@@ -48,9 +48,9 @@ async def extract_sitemap_urls(session, domain):
                 if response.status == 200:
                     robots_content = await response.text()
                     for line in robots_content.splitlines():
-                        # Look for lines ending with .xml
-                        if line.strip().lower().endswith(".xml"):
-                            sitemap_url = line.strip()
+                        # Look for lines starting with "Sitemap:" and ending with .xml
+                        if line.strip().lower().startswith("sitemap:") and line.strip().lower().endswith(".xml"):
+                            sitemap_url = line.split(":", 1)[1].strip()
                             sitemap_urls.append(sitemap_url)
         except aiohttp.ClientError as e:
             pass

@@ -173,6 +173,28 @@ async def process_domain(session, domain, all_url_set, limiter):
     except Exception as e:
         st.error(f"Error processing {domain}: {str(e)}")
 
+# New function to extract URLs from robots.txt
+async def extract_robots_txt_urls(session, domain):
+    robots_url = urljoin(domain, "robots.txt")
+    urls = []
+
+    try:
+        async with session.get(robots_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
+            if response.status == 200:
+                robots_content = await response.text()
+                for line in robots_content.splitlines():
+                    # Look for lines starting with "Sitemap:", "Allow:", or "Disallow:"
+                    if line.strip().lower().startswith(("sitemap:", "allow:", "disallow:")):
+                        url = line.split(":", 1)[1].strip()
+                        if url.startswith("http"):
+                            urls.append(url)
+                        else:
+                            urls.append(urljoin(domain, url))
+    except aiohttp.ClientError as e:
+        st.error(f"Error fetching robots.txt from {domain}: {str(e)}")
+
+    return urls
+
 async def main():
     st.title("Sitemap URL Extractor")
 
@@ -237,7 +259,7 @@ async def main():
 
     # New section for user-defined sitemap extraction
     st.subheader("Extract URLs from a Specific Sitemap")
-    user_sitemap_url = st.text_input("Enter a specific sitemap URL (e.g., https://image.bz-berlin.de/sitemap/news-sitemap.xml):")
+    user_sitemap_url = st.text_input("Enter a specific sitemap URL (e.g., https://example.com/sitemap.xml):")
     user_url_set = set()  # Use a set to store URLs from the user-defined sitemap
 
     if st.button("Extract URLs from Specific Sitemap"):
@@ -264,6 +286,38 @@ async def main():
             data="\n".join(user_url_set),
             key="download_button_user_sitemap",
             file_name=user_sitemap_filename,
+        )
+
+    # New section for extracting URLs from robots.txt
+    st.subheader("Extract URLs from robots.txt")
+    robots_domain_input = st.text_input("Enter a domain to extract URLs from its robots.txt:")
+    robots_url_set = set()  # Use a set to store URLs from robots.txt
+
+    if st.button("Extract URLs from robots.txt"):
+        if robots_domain_input:
+            if not robots_domain_input.startswith("http://") and not robots_domain_input.startswith("https://"):
+                robots_domain_input = "https://" + robots_domain_input
+
+            connector = aiohttp.TCPConnector(limit_per_host=100)  # Connection pooling
+            async with aiohttp.ClientSession(connector=connector) as session:
+                rate_limiter = AsyncLimiter(200)  # Increase the limit to 20 requests per second
+                urls = await extract_robots_txt_urls(session, robots_domain_input)
+                if urls:
+                    st.success(f"Found {len(urls)} URLs in robots.txt for {robots_domain_input}")
+                    st.text_area(f"URLs from robots.txt", "\n".join(urls))
+                    robots_url_set.update(urls)  # Add URLs to the set
+                else:
+                    st.error(f"No URLs found in robots.txt for {robots_domain_input}.")
+
+    if robots_url_set:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %A %I-%M-%p")
+        robots_filename = f"Robots URLs {timestamp}.csv"
+
+        download_button_robots = st.download_button(
+            label="Download URLs from robots.txt as CSV",
+            data="\n".join(robots_url_set),
+            key="download_button_robots",
+            file_name=robots_filename,
         )
 
 if __name__ == "__main__":

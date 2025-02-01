@@ -58,7 +58,7 @@ async def extract_sitemap_urls(session, domain):
     return sitemap_urls
 
 async def extract_all_urls_from_sitemap(session, sitemap_url):
-    url_list = []
+    url_set = set()  # Use a set to store unique URLs
 
     async def extract_recursive(sitemap_url):
         try:
@@ -67,7 +67,7 @@ async def extract_all_urls_from_sitemap(session, sitemap_url):
                     soup = BeautifulSoup(await response.text(), "xml")
                     url_elements = soup.find_all("loc")
                     urls = [url.text for url in url_elements]
-                    url_list.extend(urls)
+                    url_set.update(urls)  # Add URLs to the set
                     sitemapindex_elements = soup.find_all("sitemap")
 
                     for sitemapindex_element in sitemapindex_elements:
@@ -78,7 +78,7 @@ async def extract_all_urls_from_sitemap(session, sitemap_url):
             pass
 
     await extract_recursive(sitemap_url)
-    return url_list
+    return list(url_set)  # Convert the set back to a list
 
 def filter_urls(url_list):
     filtered_urls = []
@@ -148,7 +148,7 @@ def filter_urls(url_list):
 
     return filtered_urls, removed_urls
 
-async def process_domain(session, domain, all_url_list, limiter):
+async def process_domain(session, domain, all_url_set, limiter):
     try:
         async with limiter:
             sitemap_urls = await extract_sitemap_urls(session, domain)
@@ -161,7 +161,7 @@ async def process_domain(session, domain, all_url_list, limiter):
                     if url_list:
                         st.success(f"Found {total_urls} URLs in the sitemap: {sitemap_url}")
                         st.text_area(f"URLs from {sitemap_url}", "\n".join(url_list))
-                        all_url_list.extend(url_list)
+                        all_url_set.update(url_list)  # Add URLs to the global set
             else:
                 st.error(f"Failed to retrieve or extract sitemap URLs from {domain}.")
     except asyncio.TimeoutError:
@@ -175,7 +175,7 @@ async def main():
     domain_input = st.text_area("Enter multiple domains (one per line):")
     domains = [domain.strip() for domain in domain_input.split("\n") if domain.strip()]
 
-    all_url_list = []
+    all_url_set = set()  # Use a set to store all unique URLs
 
     if st.button("Extract URLs"):
         if domains:
@@ -187,13 +187,13 @@ async def main():
                     if not domain.startswith("http://") and not domain.startswith("https://"):
                         domain = "https://" + domain
 
-                    tasks.append(process_domain(session, domain, all_url_list, rate_limiter))
+                    tasks.append(process_domain(session, domain, all_url_set, rate_limiter))
 
                 await asyncio.gather(*tasks)
 
     if st.button("Copy All URLs"):
-        if all_url_list:
-            all_urls_text = "\n".join(all_url_list)
+        if all_url_set:
+            all_urls_text = "\n".join(all_url_set)
             pyperclip.copy(all_urls_text)
             st.success("All URLs copied to clipboard.")
 
@@ -204,12 +204,12 @@ async def main():
 
         download_button_unfiltered = st.download_button(
             label="Download Unfiltered URLs as CSV",
-            data="\n".join(all_url_list),
+            data="\n".join(all_url_set),
             key="download_button_unfiltered",
             file_name=unfiltered_filename,
         )
 
-        filtered_urls, removed_urls = filter_urls(all_url_list)
+        filtered_urls, removed_urls = filter_urls(list(all_url_set))  # Convert set to list for filtering
 
         removed_filename = f"Removed URLs {formatted_domains} {timestamp}.csv"
 

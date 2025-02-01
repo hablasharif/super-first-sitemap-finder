@@ -51,7 +51,11 @@ async def extract_sitemap_urls(session, domain):
                         # Look for lines starting with "Sitemap:" and ending with .xml
                         if line.strip().lower().startswith("sitemap:") and line.strip().lower().endswith(".xml"):
                             sitemap_url = line.split(":", 1)[1].strip()
-                            sitemap_urls.append(sitemap_url)
+                            # If the sitemap URL is absolute, use it directly
+                            if sitemap_url.startswith("http"):
+                                sitemap_urls.append(sitemap_url)
+                            else:
+                                sitemap_urls.append(urljoin(domain, sitemap_url))
         except aiohttp.ClientError as e:
             pass
 
@@ -176,6 +180,7 @@ async def main():
     domains = [domain.strip() for domain in domain_input.split("\n") if domain.strip()]
 
     all_url_set = set()  # Use a set to store all unique URLs
+    detected_sitemaps = []  # List to store detected sitemap URLs
 
     if st.button("Extract URLs"):
         if domains:
@@ -230,11 +235,10 @@ async def main():
             file_name=filtered_filename,
         )
 
+    # Display detected sitemap URLs
+    if detected_sitemaps:
+        st.subheader("Detected Sitemap URLs")
+        st.text_area("Sitemap URLs", "\n".join(detected_sitemaps))
+
 if __name__ == "__main__":
     asyncio.run(main())
-# Create a link to the external URL
-url = "https://website-titles-and-h1-tag-checke.streamlit.app/"
-link_text = "VISIT THIS IF YOU WANT TO PULL WEBSITE ALL TITLES AND H1 TAG TITLE THEN VISIT THIS"
-
-# Display the link
-st.markdown(f"[{link_text}]({url})")

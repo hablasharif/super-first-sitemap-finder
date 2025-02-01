@@ -173,7 +173,7 @@ async def process_domain(session, domain, all_url_set, limiter):
     except Exception as e:
         st.error(f"Error processing {domain}: {str(e)}")
 
-# New function to extract URLs from robots.txt
+# New function to extract URLs from robots.txt for multiple domains
 async def extract_robots_txt_urls(session, domain):
     robots_url = urljoin(domain, "robots.txt")
     urls = []
@@ -194,6 +194,17 @@ async def extract_robots_txt_urls(session, domain):
         st.error(f"Error fetching robots.txt from {domain}: {str(e)}")
 
     return urls
+
+async def process_robots_txt_domains(session, domains, robots_url_set, limiter):
+    tasks = []
+    for domain in domains:
+        if not domain.startswith("http://") and not domain.startswith("https://"):
+            domain = "https://" + domain
+        tasks.append(extract_robots_txt_urls(session, domain))
+
+    results = await asyncio.gather(*tasks)
+    for urls in results:
+        robots_url_set.update(urls)
 
 async def main():
     st.title("Sitemap URL Extractor")
@@ -288,26 +299,24 @@ async def main():
             file_name=user_sitemap_filename,
         )
 
-    # New section for extracting URLs from robots.txt
+    # New section for extracting URLs from robots.txt for multiple domains
     st.subheader("Extract URLs from robots.txt")
-    robots_domain_input = st.text_input("Enter a domain to extract URLs from its robots.txt:")
+    robots_domain_input = st.text_area("Enter multiple domains (one per line) to extract URLs from their robots.txt:")
+    robots_domains = [domain.strip() for domain in robots_domain_input.split("\n") if domain.strip()]
     robots_url_set = set()  # Use a set to store URLs from robots.txt
 
     if st.button("Extract URLs from robots.txt"):
-        if robots_domain_input:
-            if not robots_domain_input.startswith("http://") and not robots_domain_input.startswith("https://"):
-                robots_domain_input = "https://" + robots_domain_input
-
+        if robots_domains:
             connector = aiohttp.TCPConnector(limit_per_host=100)  # Connection pooling
             async with aiohttp.ClientSession(connector=connector) as session:
                 rate_limiter = AsyncLimiter(200)  # Increase the limit to 20 requests per second
-                urls = await extract_robots_txt_urls(session, robots_domain_input)
-                if urls:
-                    st.success(f"Found {len(urls)} URLs in robots.txt for {robots_domain_input}")
-                    st.text_area(f"URLs from robots.txt", "\n".join(urls))
-                    robots_url_set.update(urls)  # Add URLs to the set
+                await process_robots_txt_domains(session, robots_domains, robots_url_set, rate_limiter)
+
+                if robots_url_set:
+                    st.success(f"Found {len(robots_url_set)} URLs in robots.txt for the provided domains.")
+                    st.text_area(f"URLs from robots.txt", "\n".join(robots_url_set))
                 else:
-                    st.error(f"No URLs found in robots.txt for {robots_domain_input}.")
+                    st.error("No URLs found in robots.txt for the provided domains.")
 
     if robots_url_set:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %A %I-%M-%p")

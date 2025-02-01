@@ -21,6 +21,7 @@ ssl_context.verify_mode = ssl.CERT_NONE
 ssl_context.hosts = ['0gomovies.si']  # Add your domain here
 
 async def extract_sitemap_url(session, domain):
+    # Try predefined sitemap URLs first
     sitemap_urls = [
         urljoin(domain, "sitemap_index.xml"),
         urljoin(domain, "sitemap.xml"),
@@ -36,15 +37,16 @@ async def extract_sitemap_url(session, domain):
         except aiohttp.ClientError as e:
             pass
 
-    # If no sitemap found in predefined URLs, check robots.txt
+    # If no sitemap found in predefined URLs, check robots.txt for .xml URLs
     robots_url = urljoin(domain, "robots.txt")
     try:
         async with session.get(robots_url, headers={"User-Agent": user_agent}, ssl=ssl_context) as response:
             if response.status == 200:
                 robots_content = await response.text()
                 for line in robots_content.splitlines():
-                    if line.lower().startswith("sitemap:"):
-                        sitemap_url = line.split(":", 1)[1].strip()
+                    # Look for lines ending with .xml
+                    if line.strip().lower().endswith(".xml"):
+                        sitemap_url = line.strip()
                         return sitemap_url
     except aiohttp.ClientError as e:
         pass

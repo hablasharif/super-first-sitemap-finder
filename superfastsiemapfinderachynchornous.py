@@ -24,7 +24,9 @@ async def extract_sitemap_url(session, domain):
     sitemap_urls = [
         urljoin(domain, "sitemap_index.xml"),
         urljoin(domain, "sitemap.xml"),
-        urljoin(domain, "sitemap_gn.xml")
+        urljoin(domain, "sitemap_gn.xml"),
+        urljoin(domain, "news.xml")
+        
     ]
 
     for sitemap_url in sitemap_urls:
@@ -134,7 +136,8 @@ async def process_domain(session, domain, all_url_list, limiter):
             sitemap_urls = [
                 urljoin(domain, "sitemap_index.xml"),
                 urljoin(domain, "sitemap.xml"),
-                urljoin(domain, "sitemap_gn.xml")
+                urljoin(domain, "sitemap_gn.xml"),
+                urljoin(domain, "news.xml")
             ]
 
             # Add logic to handle sub-sitemap XML files
